@@ -1,0 +1,4 @@
+Examen final com560
+Escoger una pagina web y reportar vulnerabilidades usar nmap como minimo y hacer 
+un informe de pentesting con conclusiones y recomendaciones 
+la pagina no debe repetirse con los demas 

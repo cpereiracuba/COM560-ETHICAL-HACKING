@@ -1,0 +1,8 @@
+De la VM Windows XP
+la cual ya se realizo en clases anteriores 
+seguir todos los pasos, para conseguir HACKEAR la PC XP
+y tomar una foto, mostrarla en su propia maquina Kali/PARROT
+además grabar un audio cualquiera con su propia VOZ y escucharla en su PC KALI/PARROT
+a objetos de calificación 
+
+(esta contrasenia se obtine extrayendo el texto de una imagen con steghide)

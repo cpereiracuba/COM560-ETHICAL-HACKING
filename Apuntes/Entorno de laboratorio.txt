@@ -1,0 +1,51 @@
+**DESCRIPCIÓN DEL LABORATORIO DE HACKING ÉTICO**
+
+### 1. Introducción
+
+El presente laboratorio ha sido diseñado para la realización de prácticas de Hacking Ético y Pruebas de Penetración (Pentesting) en un entorno virtual, seguro y controlado. Su propósito es permitir el aprendizaje y la aplicación de técnicas de análisis de vulnerabilidades, reconocimiento de sistemas y evaluación de seguridad informática sin afectar sistemas reales.
+
+### 2. Entorno de Laboratorio
+
+Para la implementación del laboratorio se utiliza **Oracle VirtualBox**, una plataforma de virtualización que permite ejecutar múltiples sistemas operativos en un mismo equipo físico. Dentro de este entorno se han configurado dos máquinas virtuales:
+
+* **Kali Linux:** Máquina atacante utilizada para ejecutar herramientas de auditoría y pruebas de seguridad.
+* **Windows XP:** Máquina objetivo o víctima, utilizada para simular un sistema vulnerable sobre el cual se realizarán las pruebas de penetración.
+
+### 3. Tecnologías Utilizadas
+
+Las principales tecnologías empleadas en el laboratorio son:
+
+* **Oracle VirtualBox:** Software de virtualización para la creación y gestión de máquinas virtuales.
+* **Kali Linux:** Distribución Linux especializada en seguridad informática y pruebas de penetración.
+* **Windows XP:** Sistema operativo utilizado como entorno de pruebas y análisis de vulnerabilidades.
+* **Protocolo TCP/IP:** Base para la comunicación entre las máquinas virtuales dentro de la red configurada.
+
+### 4. Topología de Red
+
+La topología implementada consiste en una red virtual donde ambas máquinas se encuentran conectadas y pueden comunicarse entre sí.
+
+**Esquema de comunicación:**
+
+**Kali Linux (Atacante) ⟷ Red Virtual de VirtualBox ⟷ Windows XP (Víctima)**
+
+Esta configuración permite establecer una comunicación directa entre los equipos para realizar actividades de reconocimiento, análisis y evaluación de seguridad en un entorno aislado.
+
+### 5. Actividades Realizadas
+
+Dentro del laboratorio se podrán desarrollar las siguientes actividades:
+
+* Verificación de conectividad entre equipos.
+* Descubrimiento de hosts en la red.
+* Escaneo de puertos y servicios.
+* Enumeración de sistemas y recursos.
+* Identificación y análisis de vulnerabilidades.
+* Simulación de pruebas de penetración controladas.
+* Elaboración de informes de hallazgos y recomendaciones.
+
+### 6. Objetivo del Laboratorio
+
+El objetivo principal de este laboratorio es fortalecer los conocimientos prácticos en seguridad informática mediante la aplicación de metodologías de Hacking Ético, permitiendo comprender el funcionamiento de las vulnerabilidades, las técnicas de análisis de seguridad y las herramientas utilizadas en pruebas de penetración dentro de un entorno seguro y controlado.
+
+### 7. Conclusión
+
+La implementación de este laboratorio proporciona una plataforma adecuada para el aprendizaje práctico de la seguridad informática, permitiendo desarrollar habilidades en análisis de vulnerabilidades, evaluación de riesgos y pruebas de penetración, siempre bajo principios éticos y buenas prácticas profesionales.
